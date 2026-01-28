@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex flex-column align-items-center text-center mb-4">
+                        <div class="avatar-placeholder mb-3">
+                            <i class="fas fa-user-circle fa-5x text-secondary"></i>
+                        </div>
+                        <h5 class="mb-0">{{ doctor.hospital_name }}</h5>
+                        <p class="text-muted">{{ doctor.doctor_name }}</p>
+                        <button class="btn btn-sm btn-outline-success mt-2 change-photo-btn">
+                            <i class="fas fa-camera me-1"></i> Change Photo
+                        </button>
+                    </div>
+                    
+                    <div class="list-group settings-nav">
+                        <a href="#profile-settings" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                            <i class="fas fa-user-edit me-2"></i> Profile Settings
+                        </a>
+                        <a href="#hospital-details" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                            <i class="fas fa-hospital me-2"></i> Hospital Details
+                        </a>
+                        <a href="#security" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                            <i class="fas fa-shield-alt me-2"></i> Security
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Profile Settings Tab -->
+                <div class="tab-pane fade show active" id="profile-settings">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="card-title mb-0">Profile Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('update_profile') }}">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="hospital_name" class="form-label">Hospital/Clinic Name</label>
+                                        <input type="text" class="form-control" id="hospital_name" name="hospital_name" value="{{ doctor.hospital_name }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="doctor_name" class="form-label">Doctor Name</label>
+                                        <input type="text" class="form-control" id="doctor_name" name="doctor_name" value="{{ doctor.doctor_name }}">
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label for="mobile_no" class="form-label">Mobile Number</label>
+                                        <input type="text" class="form-control" id="mobile_no" name="mobile_no" value="{{ doctor.mobile_no }}" readonly>
+                                        <div class="form-text">Mobile number cannot be changed as it's used for login</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Address</label>
+                                    <textarea class="form-control" id="address" name="address" rows="3">{{ doctor.address }}</textarea>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="pincode" class="form-label">Pincode</label>
+                                        <input type="text" class="form-control" id="pincode" name="pincode" value="{{ doctor.pincode }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="map_link" class="form-label">Map Link (Optional)</label>
+                                        <input type="url" class="form-control" id="map_link" name="map_link" value="{{ doctor.map_link }}">
+                                    </div>
+                                </div>
+                                
+                                <div class="text-end">
+                                    <button type="button" class="btn btn-outline-secondary me-2">Cancel</button>
+                                    <button type="submit" class="btn btn-success">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hospital Details Tab -->
+                <div class="tab-pane fade" id="hospital-details">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="card-title mb-0">Hospital Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <form>
+                                <div class="mb-3">
+                                    <label for="medicalLicense" class="form-label">Medical License Number</label>
+                                    <input type="text" class="form-control" id="medicalLicense" placeholder="Enter medical license number">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="specialization" class="form-label">Specialization</label>
+                                    <input type="text" class="form-control" id="specialization" placeholder="e.g., General Medicine, Cardiology">
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="openingTime" class="form-label">Opening Time</label>
+                                        <input type="time" class="form-control" id="openingTime" value="09:00">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="closingTime" class="form-label">Closing Time</label>
+                                        <input type="time" class="form-control" id="closingTime" value="21:00">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Working Days</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="monday" checked>
+                                        <label class="form-check-label" for="monday">Mon</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="tuesday" checked>
+                                        <label class="form-check-label" for="tuesday">Tue</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="wednesday" checked>
+                                        <label class="form-check-label" for="wednesday">Wed</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="thursday" checked>
+                                        <label class="form-check-label" for="thursday">Thu</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="friday" checked>
+                                        <label class="form-check-label" for="friday">Fri</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="saturday" checked>
+                                        <label class="form-check-label" for="saturday">Sat</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="sunday">
+                                        <label class="form-check-label" for="sunday">Sun</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-end">
+                                    <button type="button" class="btn btn-outline-secondary me-2">Cancel</button>
+                                    <button type="submit" class="btn btn-success">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security Tab -->
+                <div class="tab-pane fade" id="security">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="card-title mb-0">Security Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('update_profile') }}">
+                                <h6 class="mb-3">Change Password</h6>
+                                <div class="mb-3">
+                                    <label for="currentPassword" class="form-label">Current Password</label>
+                                    <input type="password" class="form-control" id="currentPassword" name="current_password">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">New Password</label>
+                                    <input type="password" class="form-control" id="password" name="password">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                                    <input type="password" class="form-control" id="confirmPassword" name="confirm_password">
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <button type="submit" class="btn btn-success">Update Password</button>
+                                </div>
+                                
+                                <hr>
+                                
+                                <h6 class="mb-3 mt-4">Two-Factor Authentication</h6>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="enableTwoFactor">
+                                    <label class="form-check-label" for="enableTwoFactor">Enable Two-Factor Authentication</label>
+                                </div>
+                                <p class="text-muted small">Enabling two-factor authentication adds an extra layer of security to your account. You will need to enter a code from your phone each time you log in.</p>
+                                
+                                <button type="button" class="btn btn-outline-success" disabled>Set Up Two-Factor Authentication</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

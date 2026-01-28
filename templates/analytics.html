@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line text-success me-2"></i>
+                        Patient Analytics Dashboard
+                    </h5>
+                    {% if doctor %}
+                    <small class="text-muted">{{ doctor.doctor_name }} - {{ doctor.hospital_name }}</small>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if analytics %}
+                    <!-- Key Metrics -->
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white mb-3">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="card-title mb-0">Total Patients</h6>
+                                            <h2 class="my-2">{{ analytics.total_patients }}</h2>
+                                            <p class="card-text mb-0">
+                                                <i class="fas fa-user-plus"></i> 
+                                                {{ analytics.recent_patients }} this month
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-users fa-3x opacity-50"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white mb-3">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="card-title mb-0">Recommendations</h6>
+                                            <h2 class="my-2">{{ analytics.total_recommendations }}</h2>
+                                            <p class="card-text mb-0">
+                                                <i class="fas fa-plus-circle"></i> 
+                                                {{ analytics.recent_recommendations }} this month
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-prescription-bottle-alt fa-3x opacity-50"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white mb-3">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="card-title mb-0">Claimed Orders</h6>
+                                            <h2 class="my-2">{{ analytics.claimed_recommendations }}</h2>
+                                            <p class="card-text mb-0">
+                                                <i class="fas fa-check-circle"></i> 
+                                                {% if analytics.total_recommendations > 0 %}
+                                                {{ "%.1f"|format((analytics.claimed_recommendations / analytics.total_recommendations * 100)) }}% claimed
+                                                {% else %}
+                                                0% claimed
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-clipboard-check fa-3x opacity-50"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-dark mb-3">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="card-title mb-0">Pending Orders</h6>
+                                            <h2 class="my-2">{{ analytics.unclaimed_recommendations }}</h2>
+                                            <p class="card-text mb-0">
+                                                <i class="fas fa-clock"></i> 
+                                                Awaiting fulfillment
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-hourglass-half fa-3x opacity-50"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Detailed Analytics -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-white">
+                                    <h6 class="card-title mb-0">
+                                        <i class="fas fa-virus text-danger me-2"></i>
+                                        Most Common Diseases
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if analytics.disease_stats %}
+                                    <ul class="list-group list-group-flush">
+                                        {% for disease in analytics.disease_stats %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>
+                                                <i class="fas fa-disease me-2 text-warning"></i>
+                                                {{ disease.disease }}
+                                            </span>
+                                            <span class="badge bg-danger rounded-pill">{{ disease.count }} cases</span>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% else %}
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">No disease data available yet</p>
+                                        <small class="text-muted">Start creating recommendations to see disease statistics</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-white">
+                                    <h6 class="card-title mb-0">
+                                        <i class="fas fa-pills text-success me-2"></i>
+                                        Most Prescribed Antibiotics
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if analytics.antibiotic_stats %}
+                                    <ul class="list-group list-group-flush">
+                                        {% for antibiotic in analytics.antibiotic_stats %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>
+                                                <i class="fas fa-prescription-bottle me-2 text-success"></i>
+                                                {{ antibiotic.antibiotic }}
+                                            </span>
+                                            <span class="badge bg-success rounded-pill">{{ antibiotic.count }} prescriptions</span>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% else %}
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-pills fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">No antibiotic data available yet</p>
+                                        <small class="text-muted">Create recommendations to see prescription patterns</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Animal Type Distribution -->
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-white">
+                                    <h6 class="card-title mb-0">
+                                        <i class="fas fa-paw text-info me-2"></i>
+                                        Animal Type Distribution
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if analytics.animal_stats %}
+                                    <div class="row">
+                                        {% for animal in analytics.animal_stats %}
+                                        <div class="col-md-3 mb-3">
+                                            <div class="text-center">
+                                                <div class="card border-info">
+                                                    <div class="card-body p-3">
+                                                        <i class="fas fa-paw fa-2x text-info mb-2"></i>
+                                                        <h5 class="card-title">{{ animal.animal_type }}</h5>
+                                                        <h3 class="text-info">{{ animal.count }}</h3>
+                                                        <small class="text-muted">treatments</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-paw fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">No animal data available yet</p>
+                                        <small class="text-muted">Start treating animals to see distribution</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% else %}
+                    <!-- No Data State -->
+                    <div class="text-center py-5">
+                        <i class="fas fa-chart-line fa-4x text-muted mb-4"></i>
+                        <h4 class="text-muted">No Analytics Data Available</h4>
+                        <p class="text-muted">Start by creating patient recommendations to see analytics data here.</p>
+                        <a href="{{ url_for('medicine') }}" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>Create First Recommendation
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Patient Management Section -->
+            {% if analytics %}
+            <div class="card shadow-sm mt-4 patient-analytics-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-md text-success me-2"></i>
+                        Patient Directory
+                    </h5>
+                    <button class="btn btn-sm btn-outline-success" onclick="loadPatientData()">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-hover" id="patientsTable">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>Patient Name</th>
+                                            <th>Mobile Number</th>
+                                            <th>Area</th>
+                                            <th>Recommendations</th>
+                                            <th>Last Visit</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="patientsTableBody">
+                                        <tr>
+                                            <td colspan="5" class="text-center py-4">
+                                                <div class="spinner-border text-success me-2" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                Loading patient data...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 border-warning">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-plus-circle fa-3x text-warning mb-3"></i>
+                                    <h5 class="card-title">New Recommendation</h5>
+                                    <p class="card-text">Go to dashboard to search patients by mobile number and create new recommendations.</p>
+                                    <a href="{{ url_for('dashboard') }}" class="btn btn-warning">
+                                        <i class="fas fa-search me-2"></i>Search & Recommend
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <script>
+            // Load patient data when page loads
+            document.addEventListener('DOMContentLoaded', function() {
+                loadPatientData();
+            });
+
+            function loadPatientData() {
+                const tableBody = document.getElementById('patientsTableBody');
+                
+                // Show loading state
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            <div class="spinner-border text-success me-2" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            Loading patient data...
+                        </td>
+                    </tr>
+                `;
+
+                fetch('/api/analytics/patients')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.patients) {
+                            if (data.patients.length === 0) {
+                                tableBody.innerHTML = `
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4">
+                                            <i class="fas fa-user-plus fa-2x text-muted mb-2"></i>
+                                            <p class="text-muted mb-0">No patients with recommendations yet</p>
+                                            <small class="text-muted">Create your first recommendation to see patients here</small>
+                                        </td>
+                                    </tr>
+                                `;
+                            } else {
+                                tableBody.innerHTML = data.patients.map(patient => `
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-user-circle text-success me-2"></i>
+                                                <strong>${patient.name}</strong>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark badge-phone">
+                                                <i class="fas fa-phone me-1"></i>${patient.mobile_no}
+                                            </span>
+                                        </td>
+                                        <td>${patient.area}</td>
+                                        <td>
+                                            <span class="badge bg-success">${patient.recommendation_count} treatments</span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">${patient.last_recommendation}</small>
+                                        </td>
+                                    </tr>
+                                `).join('');
+                            }
+                        } else {
+                            tableBody.innerHTML = `
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-danger">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        Error loading patient data
+                                    </td>
+                                </tr>
+                            `;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading patients:', error);
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Error loading patient data
+                                </td>
+                            </tr>
+                        `;
+                    });
+            }
+            </script>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1941 @@
+{% extends "base.html" %}
+
+{% block title %}Medicine Recommendations - {% if shop %}{{ doctor.hospital_name }}{% else %}Pashuthalam{% endif %}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Professional Medicine Page Styling */
+    .medicine-page {
+        background: #ffffff;
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+    
+    .medicine-card {
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        margin-bottom: 2rem;
+        border: 1px solid #dee2e6;
+        background: white;
+    }
+    
+    .medicine-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        background: #f8fff8;
+        border-color: #90ee90;
+    }
+    
+    .card-header {
+        background: #ffffff;
+        color: #000000;
+        border-bottom: 1px solid #dee2e6;
+        padding: 1.5rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .card-header h5 {
+        position: relative;
+        color: #000000;
+        z-index: 1;
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.3rem;
+    }
+    
+    /* Enhanced Form Controls */
+    .form-control, .form-select {
+        border-radius: 12px;
+        padding: 0.875rem 1.25rem;
+        border: 2px solid #dee2e6;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        background: white;
+        color: #000000;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #90ee90;
+        box-shadow: 0 0 0 0.2rem rgba(144, 238, 144, 0.25);
+        outline: none;
+        background: white;
+        color: #000000;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #000000;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .form-label i {
+        color: #90ee90;
+        margin-right: 0.5rem;
+    }
+    
+    /* AI Alert Styling */
+    .ai-alert {
+        background: #f8fff8;
+        border: 2px solid #90ee90;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        color: #000000;
+    }
+    
+    .ai-alert::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: #90ee90;
+    }
+    
+    .ai-alert .fas.fa-robot {
+        color: #90ee90;
+        font-size: 1.2rem;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Professional Table Styling */
+    .table {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 1px solid #dee2e6;
+        background: #ffffff;
+    }
+    
+    .table thead th {
+        background: #ffffff;
+        color: #000000;
+        font-weight: 600;
+        padding: 1rem;
+        border-bottom: 2px solid #dee2e6;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .table tbody td {
+        padding: 0.875rem 1rem;
+        border-color: #dee2e6;
+        vertical-align: middle;
+        color: #000000;
+        background: #ffffff;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #90ee90;
+        transform: scale(1.01);
+        transition: all 0.2s ease;
+    }
+    
+    .table tbody tr:hover td {
+        color: #000000;
+    }
+    
+    .badge {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    /* Enhanced Button Styles */
+    .btn {
+        border-radius: 10px;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.2s ease;
+        border: 1px solid #dee2e6;
+        position: relative;
+        overflow: hidden;
+        background: #ffffff;
+        color: #000000;
+    }
+    
+    .btn:hover {
+        background: #90ee90;
+        color: #000000;
+        border-color: #90ee90;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-success {
+        background: #ffffff;
+        color: #000000;
+        border: 1px solid #dee2e6;
+    }
+    
+    .btn-success:hover {
+        background: #90ee90;
+        color: #000000;
+        border-color: #90ee90;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(144, 238, 144, 0.3);
+    }
+    
+    /* Professional Antibiotic Entry Styles */
+    .antibiotic-entry {
+        border: 2px solid #dee2e6;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        background: #ffffff;
+        color: #000000;
+        position: relative;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .antibiotic-entry:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        background: #f8fff8;
+        border-color: #90ee90;
+        border-color: var(--accent-color);
+    }
+    
+    .antibiotic-entry-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.2rem;
+        padding-bottom: 0.75rem;
+        padding-right: 2.5rem; /* Add space for remove button */
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .antibiotic-entry-number {
+        font-weight: 600;
+        color: #495057;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .antibiotic-entry-number::before {
+        content: "💊";
+        margin-right: 0.5rem;
+        font-size: 1.2rem;
+    }
+    
+    .remove-antibiotic-btn {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        background-color: rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.3);
+        color: #dc3545;
+        font-size: 0.875rem;
+        z-index: 10;
+    }
+    
+    .remove-antibiotic-btn:hover {
+        background-color: #dc3545;
+        color: white;
+        transform: scale(1.1);
+        border-color: #dc3545;
+    }
+    
+    #no-antibiotics-msg {
+        border: 2px dashed #dee2e6;
+        border-radius: 12px;
+        background: #ffffff;
+        padding: 2rem;
+        text-align: center;
+        color: #000000;
+    }
+    
+    /* Preview Section Styles */
+    .preview-section {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+        margin-top: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .preview-header {
+        background: #ffffff;
+        color: #000000;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .preview-item {
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        padding: 1rem;
+        border-left: 4px solid #90ee90;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+        color: #000000;
+    }
+    
+    .preview-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        background: #f8fff8;
+    }
+    
+    .preview-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .preview-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .preview-medicine-name {
+        font-weight: 600;
+        color: #1976d2;
+        font-size: 1rem;
+    }
+    
+    .preview-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #666;
+    }
+    
+    .preview-detail-item {
+        display: flex;
+        align-items: center;
+    }
+    
+    .preview-detail-item strong {
+        margin-right: 0.25rem;
+        color: #333;
+    }
+    
+    /* Enhanced Form Styling */
+    .antibiotic-treatments-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+    }
+    
+    .antibiotic-treatments-header {
+        background: #ffffff;
+        color: #000000;
+        border-radius: 12px 12px 0 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .add-antibiotic-btn {
+        background: #ffffff;
+        border: 1px solid #90ee90;
+        color: #000000;
+        transition: all 0.2s ease;
+    }
+    
+    .add-antibiotic-btn:hover {
+        background: #ffffff;
+        border-color: #90ee90;
+        color: #90ee90;
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    /* Enhanced Input Styling */
+    .form-control:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+    }
+    
+    /* Animation for adding entries */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .antibiotic-entry {
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+        .antibiotic-entry {
+            padding: 1rem;
+        }
+        
+        .antibiotic-entry-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .remove-antibiotic-btn {
+            position: static;
+            margin-top: 0.5rem;
+            align-self: flex-end;
+        }
+        
+        .preview-details {
+            grid-template-columns: 1fr;
+        }
+        
+        .add-antibiotic-btn {
+            font-size: 0.875rem;
+            padding: 0.375rem 0.75rem;
+        }
+    }
+    
+    /* Loading animation for form submission */
+    .btn-primary.loading {
+        background: linear-gradient(-45deg, #007bff, #0056b3, #007bff, #0056b3);
+        background-size: 400% 400%;
+        animation: gradientShift 2s ease infinite;
+    }
+    
+    @keyframes gradientShift {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+    
+    /* Enhanced success states */
+    .preview-item.complete {
+        border-left-color: #28a745;
+        background: linear-gradient(135deg, #d4edda 0%, #ffffff 100%);
+    }
+    
+    /* Tooltip styling */
+    .tooltip-hint {
+        position: relative;
+        cursor: help;
+    }
+    
+    .tooltip-hint:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 0.5rem;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        z-index: 1000;
+    }
+    
+    /* Results Card */
+    .recommendation-card {
+        display: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-top: 2rem;
+    }
+    
+    /* Thermal Receipt Print Styles */
+    @media print {
+        /* Hide everything except the recommendation card */
+        body * {
+            visibility: hidden;
+        }
+        
+        /* Show only the recommendation card and its children */
+        #recommendationCard, #recommendationCard * {
+            visibility: visible;
+        }
+        
+        /* Thermal receipt page setup */
+        @page {
+            size: 80mm auto; /* Thermal paper width */
+            margin: 2mm 2mm 2mm 2mm; /* Minimal margins like POS receipt */
+        }
+        
+        body {
+            font-family: 'Courier New', monospace !important; /* Monospace like thermal printers */
+            font-size: 11px !important;
+            line-height: 1.2 !important;
+            color: #000 !important;
+            background: white !important;
+        }
+        
+        /* Position the recommendation card */
+        #recommendationCard {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 76mm !important; /* Fit thermal paper width */
+            margin: 0 !important;
+            padding: 2mm !important;
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            background: white !important;
+            page-break-inside: avoid !important;
+        }
+        
+        /* Thermal receipt header */
+        #recommendationCard .card-header {
+            background: white !important;
+            color: black !important;
+            text-align: center !important;
+            padding: 0 !important;
+            margin: 0 0 3mm 0 !important;
+            border: none !important;
+            border-bottom: 1px dashed #000 !important;
+            padding-bottom: 2mm !important;
+        }
+        
+        #recommendationCard .card-header h5 {
+            font-size: 12px !important;
+            font-weight: bold !important;
+            margin: 0 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+        }
+        
+        #recommendationCard .card-header h5::before {
+            content: "*** VETERINARY PRESCRIPTION ***";
+            display: block !important;
+            font-size: 10px !important;
+            margin-bottom: 1mm !important;
+        }
+        
+        /* Show shop info in receipt header */
+        #receiptShopInfo {
+            display: block !important;
+            visibility: visible !important;
+            text-align: center !important;
+            font-size: 9px !important;
+            margin-bottom: 2mm !important;
+            padding-bottom: 1mm !important;
+            border-bottom: 1px dashed #000 !important;
+        }
+        
+        #receiptShopInfo div {
+            margin-bottom: 0.5mm !important;
+            font-weight: bold !important;
+        }
+        
+        #receiptShopInfo .hospital-name {
+            font-size: 11px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+        }
+        
+        /* Hide print button in print view */
+        #printBtn {
+            display: none !important;
+        }
+        
+        /* Style the card body for thermal receipt */
+        #recommendationCard .card-body {
+            font-size: 10px !important;
+            line-height: 1.3 !important;
+            color: #000 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        /* Remove all fancy styling - make it look like thermal receipt */
+        #recommendationCard .card-body > div {
+            margin-bottom: 2mm !important;
+            padding: 0 !important;
+            border: none !important;
+            border-radius: 0 !important;
+            background: white !important;
+        }
+        
+        /* Thermal receipt section headers */
+        #recommendationCard h6 {
+            color: #000 !important;
+            font-weight: bold !important;
+            font-size: 10px !important;
+            margin: 2mm 0 1mm 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            border-bottom: 1px dashed #000 !important;
+            text-transform: uppercase !important;
+            text-align: center !important;
+        }
+        
+        /* Remove icons for clean thermal look */
+        #recommendationCard h6::before {
+            content: none !important;
+        }
+        
+        /* Patient info section - compact thermal style */
+        #recommendationCard .row {
+            display: block !important;
+        }
+        
+        #recommendationCard .row > div {
+            display: block !important;
+            width: 100% !important;
+            margin-bottom: 1mm !important;
+            font-size: 9px !important;
+        }
+        
+        #recommendationCard strong {
+            color: #000 !important;
+            font-weight: bold !important;
+            display: inline-block !important;
+            width: 20mm !important;
+        }
+        
+        /* Medicine section with thermal receipt formatting */
+        #recommendationCard .mb-3:nth-child(2) {
+            background: white !important;
+            border: none !important;
+            border-top: 1px solid #000 !important;
+            border-bottom: 1px solid #000 !important;
+            padding: 1mm 0 !important;
+            margin: 2mm 0 !important;
+        }
+        
+        #recommendationCard .mb-3:nth-child(2) > div {
+            font-size: 9px !important;
+            margin-bottom: 1mm !important;
+        }
+        
+        /* Total dosage highlighting like receipt total */
+        #recommendationCard .mb-3:nth-child(2) > div:nth-child(6) {
+            font-weight: bold !important;
+            border-top: 1px dashed #000 !important;
+            padding-top: 1mm !important;
+            margin-top: 2mm !important;
+        }
+        
+        #recommendationCard .mb-3:nth-child(2) > div:nth-child(7) {
+            font-weight: bold !important;
+            font-size: 10px !important;
+        }
+        
+        /* Notes section like receipt footer */
+        #recommendationCard .mb-3:last-of-type {
+            background: white !important;
+            border: none !important;
+            border-top: 1px dashed #000 !important;
+            padding-top: 2mm !important;
+            margin-top: 3mm !important;
+        }
+        
+        #recommendationCard .mb-3:last-of-type p {
+            font-size: 8px !important;
+            text-align: justify !important;
+            margin: 0 !important;
+        }
+        
+        /* Footer note like receipt disclaimer */
+        #recommendationCard .text-muted {
+            background: white !important;
+            color: #000 !important;
+            padding: 0 !important;
+            border: none !important;
+            font-style: normal !important;
+            font-size: 7px !important;
+            text-align: center !important;
+            margin-top: 3mm !important;
+            border-top: 1px dashed #000 !important;
+            padding-top: 2mm !important;
+        }
+        
+        /* Add receipt footer with date/time */
+        #recommendationCard .text-muted::after {
+            content: "\A -------------------------------- \A " attr(data-date) " \A *** THANK YOU ***";
+            white-space: pre !important;
+            display: block !important;
+            text-align: center !important;
+            margin-top: 2mm !important;
+            font-size: 7px !important;
+        }
+        
+        /* Alternative treatments as simple list */
+        #recommendationCard .mb-3:nth-child(3) {
+            background: white !important;
+            border: none !important;
+        }
+        
+        #recommendationCard .mb-3:nth-child(3) #recAlternatives {
+            font-size: 8px !important;
+            text-align: center !important;
+        }
+    }
+</style>
+<script id="recs-data" type="application/json">{{ recommendations_json | tojson }}</script>
+<script>
+    // Single, clean initialization block
+    window.addEventListener('DOMContentLoaded', function () {
+      const diseaseSelect = document.getElementById('disease');
+      const antibioticSelect = document.getElementById('antibiotic');
+      const viewAllRecommendationsBtn = document.getElementById('viewAllRecommendations');
+      const allRecommendationsTable = document.getElementById('allRecommendationsTable');
+      const printBtn = document.getElementById('printBtn');
+      const medicineForm = document.getElementById('medicineForm');
+      const recommendationCard = document.getElementById('recommendationCard');
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      // Date fields removed - AI will auto-calculate treatment period
+      
+      // Multiple antibiotics elements
+      const addAntibioticBtn = document.getElementById('addAntibioticBtn');
+      const antibioticsContainer = document.getElementById('antibiotics-container');
+      const noAntibioticsMsg = document.getElementById('no-antibiotics-msg');
+      
+      let antibioticCounter = 0;
+
+      function setDatasetInfo(state) {
+        let datasetInfo = antibioticSelect.parentNode.querySelector('.dataset-info');
+        if (!datasetInfo) {
+          datasetInfo = document.createElement('small');
+          datasetInfo.className = 'dataset-info text-muted d-block mt-1';
+          antibioticSelect.parentNode.appendChild(datasetInfo);
+        }
+        if (state === 'used') {
+          datasetInfo.textContent = '✓ Recommendations from poultry dataset';
+          datasetInfo.className = 'dataset-info text-success d-block mt-1';
+        } else if (state === 'loaded') {
+          datasetInfo.textContent = 'Using standard recommendations (no poultry match found)';
+          datasetInfo.className = 'dataset-info text-muted d-block mt-1';
+        } else if (state === 'missing') {
+          datasetInfo.textContent = 'Note: Poultry dataset not loaded';
+          datasetInfo.className = 'dataset-info text-warning d-block mt-1';
+        }
+      }
+
+      function updateAntibiotics() {
+        if (!diseaseSelect || !antibioticSelect) return;
+        const selectedDisease = diseaseSelect.value;
+        antibioticSelect.innerHTML = '<option value="">Loading...</option>';
+        antibioticSelect.disabled = true;
+        if (!selectedDisease) {
+          antibioticSelect.innerHTML = '<option value="">Select Disease First</option>';
+          return;
+        }
+        fetch('/api/medicine/antibiotics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ disease: selectedDisease })
+        })
+          .then(r => r.json())
+          .then(data => {
+            antibioticSelect.innerHTML = '';
+            antibioticSelect.disabled = false;
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Any (System will recommend best)';
+            antibioticSelect.appendChild(defaultOption);
+            if (data && data.success && Array.isArray(data.antibiotics)) {
+              data.antibiotics.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                antibioticSelect.appendChild(opt);
+              });
+              if (data.dataset_loaded && data.dataset_used) setDatasetInfo('used');
+              else if (data.dataset_loaded) setDatasetInfo('loaded');
+              else setDatasetInfo('missing');
+            } else {
+              const opt = document.createElement('option');
+              opt.value = '';
+              opt.textContent = 'No antibiotics available';
+              antibioticSelect.appendChild(opt);
+            }
+          })
+          .catch(err => {
+            console.error('Error fetching antibiotics:', err);
+            antibioticSelect.innerHTML = '<option value="">Error loading options</option>';
+            antibioticSelect.disabled = false;
+          });
+      }
+
+      if (diseaseSelect) {
+        diseaseSelect.addEventListener('change', updateAntibiotics);
+        if (diseaseSelect.value) updateAntibiotics();
+      }
+
+      // View all recommendations modal
+      if (viewAllRecommendationsBtn && allRecommendationsTable) {
+        let recs = [];
+        try {
+          const el = document.getElementById('recs-data');
+          recs = JSON.parse(el ? el.textContent : '[]');
+        } catch (e) { recs = []; }
+        viewAllRecommendationsBtn.addEventListener('click', function () {
+          allRecommendationsTable.innerHTML = '';
+          (recs || []).forEach(function (rec) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><span class="badge bg-primary">${rec.id}</span></td>
+              <td>${rec.date}</td>
+              <td>${rec.mobileNo || '-'}</td>
+              <td>${rec.animalType}</td>
+              <td>${rec.disease}</td>
+              <td>${rec.antibiotic}</td>
+              <td>${rec.dosage}</td>
+              <td>${rec.treatmentDays || '-'} days</td>
+              <td>${rec.totalDosage}</td>
+              <td><span class="badge ${rec.isClaimed ? 'bg-success' : 'bg-secondary'}">${rec.isClaimed ? 'Yes' : 'No'}</span></td>
+            `;
+            allRecommendationsTable.appendChild(tr);
+          });
+          const modal = new bootstrap.Modal(document.getElementById('allRecommendationsModal'));
+          modal.show();
+        });
+      }
+
+      if (printBtn) {
+        printBtn.addEventListener('click', function () {
+          // Check if recommendation is displayed
+          if (recommendationCard.style.display === 'none' || !recommendationCard.style.display) {
+            alert('Please get a recommendation first before printing.');
+            return;
+          }
+          
+          // Add current date/time to receipt footer
+          const now = new Date();
+          const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB');
+          const footerNote = document.querySelector('#recommendationCard .text-muted');
+          if (footerNote) {
+            footerNote.setAttribute('data-date', dateStr);
+          }
+          
+          // Add a print-friendly title to the document
+          const originalTitle = document.title;
+          const recDisease = document.getElementById('recDisease').textContent;
+          const recAnimalType = document.getElementById('recAnimalType').textContent;
+          const recMedicine = document.getElementById('recMedicine').textContent;
+          
+          document.title = `Prescription-${recDisease}-${recAnimalType}-${recMedicine}`;
+          
+          // Print the page
+          window.print();
+          
+          // Restore original title
+          document.title = originalTitle;
+        });
+      }
+
+      // AI-powered treatment calculation - no manual date handling needed
+
+      // Multiple Antibiotics Functions
+      function createAntibioticEntry() {
+        antibioticCounter++;
+        const entryDiv = document.createElement('div');
+        entryDiv.className = 'antibiotic-entry';
+        entryDiv.dataset.entryId = antibioticCounter;
+        
+        entryDiv.innerHTML = `
+          <button type="button" class="btn btn-sm btn-outline-danger remove-antibiotic-btn" onclick="removeAntibioticEntry(${antibioticCounter})" title="Remove this antibiotic">
+            <i class="fas fa-times"></i>
+          </button>
+          <div class="antibiotic-entry-header">
+            <span class="antibiotic-entry-number">Treatment #${antibioticCounter}</span>
+            <small class="text-muted">Configure antibiotic details</small>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label"><i class="fas fa-capsules me-1"></i>Antibiotic/Medicine</label>
+              <select name="antibiotic_${antibioticCounter}" class="form-select antibiotic-select" required onchange="updatePreview()">
+                <option value="">Select Disease First</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="fas fa-clock me-1"></i>Daily Frequency</label>
+              <select name="daily_frequency_${antibioticCounter}" class="form-select" required onchange="updatePreview()">
+                <option value="1">1x / day (Once daily)</option>
+                <option value="2" selected>2x / day (Twice daily)</option>
+                <option value="3">3x / day (Three times daily)</option>
+                <option value="4">4x / day (Four times daily)</option>
+              </select>
+            </div>
+            <div class="col-md-12">
+              <div class="ai-alert d-flex align-items-center">
+                <i class="fas fa-robot me-3"></i>
+                <div>
+                  <strong style="color: var(--primary-color-dark);">AI-Powered Treatment Planning</strong>
+                  <p class="mb-0 mt-1" style="color: var(--dark-color); font-size: 0.9rem;">
+                    Our intelligent system automatically calculates optimal treatment duration and dosage based on advanced veterinary data analysis.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="fas fa-sticky-note me-1"></i>Notes (Optional)</label>
+              <input name="notes_${antibioticCounter}" type="text" class="form-control" placeholder="Special instructions..." onchange="updatePreview()" />
+            </div>
+          </div>
+        `;
+        
+        return entryDiv;
+      }
+      
+      function addAntibioticEntry() {
+        const entry = createAntibioticEntry();
+        antibioticsContainer.appendChild(entry);
+        updateNoAntibioticsMessage();
+        updateAntibioticOptions(entry);
+        setupDateSyncForEntry(entry);
+        
+        // Set default start date to today
+        const startDateInput = entry.querySelector('.start-date-input');
+        if (startDateInput) {
+          startDateInput.value = new Date().toISOString().split('T')[0];
+          startDateInput.dispatchEvent(new Event('change'));
+        }
+        
+        // Update preview
+        updatePreview();
+        
+        // Smooth scroll to new entry
+        setTimeout(() => {
+          entry.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
+      
+      function removeAntibioticEntry(entryId) {
+        const entry = document.querySelector(`[data-entry-id="${entryId}"]`);
+        if (entry) {
+          entry.remove();
+          updateNoAntibioticsMessage();
+          updatePreview();
+        }
+      }
+      
+      function updateNoAntibioticsMessage() {
+        const hasEntries = antibioticsContainer.children.length > 0;
+        noAntibioticsMsg.style.display = hasEntries ? 'none' : 'block';
+        
+        // Show/hide preview section
+        const previewSection = document.getElementById('preview-section');
+        if (previewSection) {
+          previewSection.style.display = hasEntries ? 'block' : 'none';
+        }
+      }
+      
+      // Preview functionality
+      function updatePreview() {
+        const previewContainer = document.getElementById('preview-container');
+        const previewCount = document.getElementById('preview-count');
+        
+        if (!previewContainer || !previewCount) return;
+        
+        // Clear existing preview
+        previewContainer.innerHTML = '';
+        
+        // Get all antibiotic entries
+        const entries = antibioticsContainer.querySelectorAll('.antibiotic-entry');
+        let validEntries = 0;
+        
+        entries.forEach((entry, index) => {
+          const entryId = entry.dataset.entryId;
+          const antibiotic = entry.querySelector(`[name="antibiotic_${entryId}"]`);
+          const frequency = entry.querySelector(`[name="daily_frequency_${entryId}"]`);
+          const notes = entry.querySelector(`[name="notes_${entryId}"]`);
+          
+          if (antibiotic && antibiotic.value) {
+            validEntries++;
+            
+            const previewItem = document.createElement('div');
+            previewItem.className = 'preview-item';
+            
+            const frequencyText = {
+              '1': 'Once daily',
+              '2': 'Twice daily',
+              '3': 'Three times daily',
+              '4': 'Four times daily'
+            }[frequency.value] || 'As directed';
+            
+            const formatDate = (dateStr) => {
+              if (!dateStr) return 'Not set';
+              const date = new Date(dateStr);
+              return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            };
+            
+            previewItem.innerHTML = `
+              <div class="preview-item-header">
+                <span class="preview-medicine-name">${antibiotic.value}</span>
+                <small class="badge bg-primary">Treatment ${index + 1}</small>
+              </div>
+              <div class="preview-details">
+                <div class="preview-detail-item">
+                  <strong>Frequency:</strong> ${frequencyText}
+                </div>
+                <div class="preview-detail-item">
+                  <strong>Duration:</strong> ${treatmentDays.value || 7} days
+                </div>
+                <div class="preview-detail-item">
+                  <strong>Start:</strong> ${formatDate(startDate.value)}
+                </div>
+                <div class="preview-detail-item">
+                  <strong>End:</strong> ${formatDate(endDate.value)}
+                </div>
+                ${notes.value ? `<div class="preview-detail-item col-span-2"><strong>Notes:</strong> ${notes.value}</div>` : ''}
+              </div>
+            `;
+            
+            previewContainer.appendChild(previewItem);
+          }
+        });
+        
+        // Update count
+        previewCount.textContent = validEntries;
+        
+        // Show empty message if no valid entries
+        if (validEntries === 0) {
+          previewContainer.innerHTML = `
+            <div class="text-center text-muted py-3">
+              <i class="fas fa-info-circle me-2"></i>
+              Complete antibiotic details to see preview
+            </div>
+          `;
+        }
+      }
+      
+      // Clear all antibiotics function
+      function clearAllAntibiotics() {
+        if (confirm('Are you sure you want to remove all antibiotic treatments?')) {
+          antibioticsContainer.innerHTML = '';
+          updateNoAntibioticsMessage();
+          updatePreview();
+        }
+      }
+      
+      // Initialize form with one antibiotic entry
+      function initializeForm() {
+        // Add first antibiotic entry automatically
+        setTimeout(() => {
+          addAntibioticEntry();
+        }, 500);
+      }
+      
+      // Initialize form on page load
+      initializeForm();
+      
+      // Global functions
+      window.updatePreview = updatePreview;
+      window.clearAllAntibiotics = clearAllAntibiotics;
+      
+      function updateAntibioticOptions(entry) {
+        if (!diseaseSelect || !diseaseSelect.value) return;
+        
+        const select = entry.querySelector('.antibiotic-select');
+        if (!select) return;
+        
+        // Store current selection to preserve it
+        const currentValue = select.value;
+        
+        select.innerHTML = '<option value="">Loading...</option>';
+        select.disabled = true;
+        
+        fetch('/api/medicine/antibiotics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            disease: diseaseSelect.value,
+            animal_type: document.getElementById('animal_type').value || 'Cattle'
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          select.innerHTML = '<option value="">Select an antibiotic</option>';
+          if (data.antibiotics && data.antibiotics.length > 0) {
+            data.antibiotics.forEach(antibiotic => {
+              const opt = document.createElement('option');
+              opt.value = antibiotic;
+              opt.textContent = antibiotic;
+              select.appendChild(opt);
+            });
+            
+            // Restore previous selection if it's still available
+            if (currentValue && data.antibiotics.includes(currentValue)) {
+              select.value = currentValue;
+            }
+          }
+          select.disabled = false;
+        })
+        .catch(err => {
+          console.error('Error fetching antibiotics for entry:', err);
+          select.innerHTML = '<option value="">Error loading options</option>';
+          select.disabled = false;
+        });
+      }
+      
+      function setupDateSyncForEntry(entry) {
+        const startDate = entry.querySelector('.start-date-input');
+        const endDate = entry.querySelector('.end-date-input');
+        const treatmentDays = entry.querySelector('.treatment-days-input');
+        
+        if (!startDate || !endDate || !treatmentDays) return;
+        
+        function updateTreatmentDaysForEntry() {
+          const s = new Date(startDate.value);
+          const e = new Date(endDate.value);
+          if (!isNaN(s.getTime()) && !isNaN(e.getTime())) {
+            const diffTime = Math.abs(e - s);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // Add 1 to include start day
+            treatmentDays.value = diffDays;
+          }
+          // Update preview after calculation
+          updatePreview();
+        }
+        
+        function updateEndDateForEntry() {
+          const s = new Date(startDate.value);
+          const days = parseInt(treatmentDays.value || '7', 10);
+          if (!isNaN(s.getTime()) && days > 0) {
+            const newEnd = new Date(s);
+            // If treating for 3 days starting today, end date should be 2 days later
+            // Day 1 = today, Day 2 = tomorrow, Day 3 = day after tomorrow
+            newEnd.setDate(newEnd.getDate() + (days - 1));
+            endDate.value = newEnd.toISOString().split('T')[0];
+          }
+          // Update preview after calculation
+          updatePreview();
+        }
+        
+        startDate.addEventListener('change', () => {
+          updateTreatmentDaysForEntry();
+          updatePreview();
+        });
+        endDate.addEventListener('change', () => {
+          updateTreatmentDaysForEntry();
+          updatePreview();
+        });
+        treatmentDays.addEventListener('change', () => {
+          updateEndDateForEntry();
+          updatePreview();
+        });
+      }
+      
+      // Event listeners for multiple antibiotics
+      if (addAntibioticBtn) {
+        addAntibioticBtn.addEventListener('click', addAntibioticEntry);
+      }
+      
+      // Update all antibiotic options when disease changes
+      if (diseaseSelect) {
+        diseaseSelect.addEventListener('change', function() {
+          updateAntibiotics(); // Original function for main select
+          // Update all antibiotic entry selects
+          const entries = antibioticsContainer.querySelectorAll('.antibiotic-entry');
+          entries.forEach(updateAntibioticOptions);
+        });
+      }
+      
+      // Global function for remove button (needed for onclick)
+      window.removeAntibioticEntry = removeAntibioticEntry;
+
+      // Handle form submission to get recommendation
+      if (medicineForm) {
+      // Global variables for prescription flow
+      let currentPredictionPayload = null;
+
+      // Handle form submission to get prediction
+      if (medicineForm) {
+        medicineForm.addEventListener('submit', function (e) {
+          e.preventDefault();
+          if (loadingIndicator) loadingIndicator.style.display = 'block';
+          if (recommendationCard) recommendationCard.style.display = 'none';
+          document.getElementById('treatment-preview').style.display = 'none';
+
+          // Collect multiple antibiotics data
+          const antibiotics = [];
+          const antibioticEntries = antibioticsContainer.querySelectorAll('.antibiotic-entry');
+          
+          antibioticEntries.forEach(entry => {
+            const entryId = entry.dataset.entryId;
+            const antibioticSelect = entry.querySelector(`[name="antibiotic_${entryId}"]`);
+            const dailyFreq = entry.querySelector(`[name="daily_frequency_${entryId}"]`);
+            const notes = entry.querySelector(`[name="notes_${entryId}"]`);
+            
+            if (antibioticSelect && antibioticSelect.value) {
+              antibiotics.push({
+                antibiotic: antibioticSelect.value,
+                daily_frequency: dailyFreq ? dailyFreq.value : '2',
+                notes: notes ? notes.value : ''
+              });
+            }
+          });
+
+          const payload = {
+            farmer_id: (document.getElementById('farmer_id') || {}).value || null,
+            animal_type: (document.getElementById('animal_type') || {}).value || null,
+            disease: (document.getElementById('disease') || {}).value || null,
+            weight: (document.getElementById('weight') || {}).value || null,
+            age: (document.getElementById('age') || {}).value || null,
+            antibiotics: antibiotics
+          };
+
+          // Check for farmer_id specifically and provide a clear message
+          if (!payload.farmer_id || String(payload.farmer_id).trim() === '') {
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+            alert('Please select a farmer first. To use this page, you should access it via /medicine/{farmer_id}. Example: /medicine/1');
+            return;
+          }
+
+          // Then check for other required fields
+          const otherMissing = ['animal_type','disease','weight','age'].filter(k => !payload[k] || String(payload[k]).trim() === '');
+          if (otherMissing.length) {
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+            alert('Please complete the form. Missing: ' + otherMissing.join(', '));
+            return;
+          }
+
+          // Check if at least one antibiotic is added
+          if (antibiotics.length === 0) {
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+            alert('Please add at least one antibiotic treatment.');
+            return;
+          }
+
+          // Call Predict API instead of direct recommend
+          fetch('/api/medicine/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+            .then(r => r.json())
+            .then(data => {
+              if (loadingIndicator) loadingIndicator.style.display = 'none';
+              
+              if (data.success && data.predictions) {
+                // Store payload for confirm step
+                currentPredictionPayload = payload;
+                
+                // Populate Preview
+                const container = document.getElementById('preview-items-container');
+                container.innerHTML = '';
+                
+                data.predictions.forEach((pred, idx) => {
+                   // Initial update to payload
+                   currentPredictionPayload.antibiotics[idx].treatment_days = pred.treatment_days;
+                   currentPredictionPayload.antibiotics[idx].single_dose_ml = pred.single_dose_ml;
+
+                   const div = document.createElement('div');
+                   div.className = 'card mb-2 p-3 border shadow-sm';
+                   div.innerHTML = `
+                       <div class="row align-items-center">
+                           <div class="col-md-4">
+                               <h6 class="mb-1 text-primary"><i class="fas fa-pills me-2"></i>${pred.antibiotic}</h6>
+                               <div class="badge ${pred.source === 'AI' ? 'bg-info text-dark' : 'bg-secondary'}">
+                                 ${pred.source === 'AI' ? '<i class="fas fa-robot me-1"></i> AI Optimization' : 'Standard Protocol'}
+                               </div>
+                           </div>
+                           <div class="col-md-4">
+                               <label class="small text-muted fw-bold">Daily Dosage (ml)</label>
+                               <div class="input-group input-group-sm">
+                                  <input type="number" class="form-control preview-edit-input" 
+                                      data-index="${idx}" data-field="single_dose_ml"
+                                      step="0.1" value="${pred.single_dose_ml}">
+                                  <span class="input-group-text">ml</span>
+                               </div>
+                           </div>
+                           <div class="col-md-4">
+                               <label class="small text-muted fw-bold">Duration</label>
+                               <div class="input-group input-group-sm">
+                                  <input type="number" class="form-control preview-edit-input" 
+                                      data-index="${idx}" data-field="treatment_days"
+                                      min="1" max="60" value="${pred.treatment_days}">
+                                  <span class="input-group-text">days</span>
+                               </div>
+                           </div>
+                       </div>
+                   `;
+                   container.appendChild(div);
+                });
+                
+                // Toggle UI
+                document.getElementById('treatment-preview').style.display = 'block';
+                document.getElementById('action-buttons-row').style.display = 'none';
+                document.getElementById('treatment-preview').scrollIntoView({ behavior: 'smooth' });
+                
+              } else {
+                alert('Prediction Error: ' + (data.error || 'Unknown error'));
+              }
+            })
+            .catch(err => {
+              if (loadingIndicator) loadingIndicator.style.display = 'none';
+              console.error('Error:', err);
+              alert('An error occurred during prediction.');
+            });
+        });
+      }
+
+      // Confirm Prescription & Cancel Functions
+      window.confirmPrescription = function() {
+        if (!currentPredictionPayload) return;
+        
+        // Update payload with user edits
+        const inputs = document.querySelectorAll('.preview-edit-input');
+        inputs.forEach(input => {
+            const idx = parseInt(input.dataset.index);
+            const field = input.dataset.field;
+            let val = parseFloat(input.value);
+            if (field === 'treatment_days') val = parseInt(val);
+            
+            if (currentPredictionPayload.antibiotics[idx]) {
+                currentPredictionPayload.antibiotics[idx][field] = val;
+            }
+        });
+
+        if (loadingIndicator) loadingIndicator.style.display = 'block';
+
+        fetch('/api/medicine/recommend', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(currentPredictionPayload)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+            document.getElementById('treatment-preview').style.display = 'none';
+            document.getElementById('action-buttons-row').style.display = 'flex';
+            
+            if (data && data.success && data.recommendation) {
+                // Show recommendation ID in popup
+                const recId = data.recommendation.id;
+                if (recId) showRecommendationIdPopup(recId);
+                
+                updateRecommendationCard(data.recommendation);
+                if (recommendationCard) {
+                  recommendationCard.style.display = 'block';
+                  if (window.innerWidth < 992) {
+                    recommendationCard.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }
+
+                // Optimistically append to Previous Recommendations table if exists
+                try {
+                  const table = document.getElementById('prevRecsTable');
+                  if (table) {
+                    const noDataRow = table.querySelector('tr td[colspan="10"]');
+                    if (noDataRow) table.innerHTML = '';
+                    
+                    const r = data.recommendation;
+                    const tr = document.createElement('tr');
+                    const today = new Date();
+                    const dateStr = today.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+                    
+                    const firstItem = r.items && r.items.length > 0 ? r.items[0] : null;
+                    const itemsCount = r.items ? r.items.length : 0;
+                    const multipleItems = itemsCount > 1 ? ` <small class="text-muted">(+${itemsCount - 1} more)</small>` : '';
+                    
+                    const animalType = firstItem ? firstItem.animal_type : r.animal_type;
+                    const disease = firstItem ? firstItem.disease : r.disease;
+                    const medicine = firstItem ? firstItem.antibiotic_name : (r.primary_treatment ? r.primary_treatment.medicine : '-');
+                    const dosage = firstItem ? firstItem.single_dose_ml : (r.primary_treatment ? r.primary_treatment.dosage_ml : 0);
+                    const dailyFreq = firstItem ? firstItem.daily_frequency : (r.primary_treatment ? r.primary_treatment.daily_frequency : 1);
+                    const totalDosage = firstItem ? firstItem.total_treatment_dosage_ml : (r.primary_treatment ? r.primary_treatment.total_treatment_dosage_ml : 0);
+                    
+                    const dosageSuffix = (dailyFreq > 1) ? ` (${dailyFreq}x/day)` : '';
+                    const period = `${new Date(r.start_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})} - ${new Date(r.end_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}`;
+                    const claimStatus = r.is_claimed ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-secondary">No</span>';
+                    const claimedBy = r.claimed_by ? `<br><small class="text-muted">by ${r.claimed_by}</small>` : '';
+                    
+                    tr.innerHTML = `
+                      <td><span class="badge bg-primary">${r.id}</span></td>
+                      <td>${dateStr}</td>
+                      <td>${r.farmer_mobile || '-'}</td>
+                      <td>${animalType}</td>
+                      <td>${disease}</td>
+                      <td>${medicine}${multipleItems}</td>
+                      <td>${dosage} ml${dosageSuffix}</td>
+                      <td>${period}</td>
+                      <td>${totalDosage} ml</td>
+                      <td>${claimStatus}${claimedBy}</td>
+                    `;
+                    table.prepend(tr);
+                  }
+                } catch (e) { /* noop */ }
+              } else {
+                const msg = (data && data.error ? data.error : 'Failed to get recommendation');
+                alert('Error: ' + msg);
+              }
+            })
+            .catch(err => {
+              if (loadingIndicator) loadingIndicator.style.display = 'none';
+              console.error('Error:', err);
+              alert('An error occurred. Please try again.');
+            });
+      };
+
+      window.cancelPreview = function() {
+          document.getElementById('treatment-preview').style.display = 'none';
+          document.getElementById('action-buttons-row').style.display = 'flex';
+      };
+      }
+    });
+
+    // Recommendation card updater (updated for multiple antibiotics)
+    function updateRecommendationCard(rec) {
+      if (!rec) return;
+      
+      // Update basic info
+      document.getElementById('recDisease').textContent = rec.disease;
+      document.getElementById('recAnimalType').textContent = rec.animal_type;
+      document.getElementById('recWeight').textContent = rec.weight_kg + ' kg';
+      document.getElementById('recAge').textContent = rec.age_days + ' days';
+      
+      // Update recommendation ID
+      const recIdEl = document.getElementById('recId');
+      if (recIdEl && rec.id) {
+        recIdEl.textContent = `ID: ${rec.id}`;
+      }
+      
+      // Handle multiple antibiotics display
+      if (rec.items && rec.items.length > 0) {
+        // Multiple antibiotics case
+        if (rec.items.length === 1) {
+          // Single antibiotic (backward compatibility)
+          const item = rec.items[0];
+          document.getElementById('recMedicine').textContent = item.antibiotic_name;
+          document.getElementById('recCategory').textContent = 'Antibiotic';
+          document.getElementById('recDosage').textContent = item.single_dose_ml + ' ml';
+          document.getElementById('recFrequency').textContent = item.frequency_description;
+          document.getElementById('recDailyDosage').textContent = item.total_daily_dosage_ml + ' ml';
+          document.getElementById('recTotalDosage').textContent = item.total_treatment_dosage_ml + ' ml';
+          
+          const formattedStartDate = new Date(item.start_date).toLocaleDateString('en-GB');
+          const formattedEndDate = new Date(item.end_date).toLocaleDateString('en-GB');
+          document.getElementById('recTreatmentPeriod').textContent = `${formattedStartDate} to ${formattedEndDate} (${item.treatment_days} days)`;
+          
+          document.getElementById('recPerDoseInfo').innerHTML = item.daily_frequency > 1
+            ? `<strong>Important:</strong> Give ${item.single_dose_ml} ml, ${item.daily_frequency} times per day.`
+            : `Give ${item.single_dose_ml} ml once per day.`;
+        } else {
+          // Multiple antibiotics case
+          document.getElementById('recMedicine').textContent = `${rec.items.length} Antibiotics (Multi-Treatment)`;
+          document.getElementById('recCategory').textContent = 'Multiple Antibiotics';
+          
+          // Create detailed view for multiple antibiotics
+          let totalDailyDosage = 0;
+          let totalTreatmentDosage = 0;
+          let medicinesList = '';
+          let treatmentPeriods = [];
+          
+          rec.items.forEach((item, index) => {
+            totalDailyDosage += item.total_daily_dosage_ml;
+            totalTreatmentDosage += item.total_treatment_dosage_ml;
+            
+            const formattedStartDate = new Date(item.start_date).toLocaleDateString('en-GB');
+            const formattedEndDate = new Date(item.end_date).toLocaleDateString('en-GB');
+            const period = `${formattedStartDate} to ${formattedEndDate} (${item.treatment_days} days)`;
+            treatmentPeriods.push(period);
+            
+            medicinesList += `
+              <div class="mb-2 p-2 border rounded bg-light">
+                <strong>${index + 1}. ${item.antibiotic_name}</strong><br>
+                <small>
+                  <i class="fas fa-syringe me-1"></i>${item.single_dose_ml} ml per dose, ${item.frequency_description}<br>
+                  <i class="fas fa-calendar me-1"></i>${period}<br>
+                  ${item.notes ? `<i class="fas fa-note-sticky me-1"></i>${item.notes}<br>` : ''}
+                  <i class="fas fa-calculator me-1"></i>Daily: ${item.total_daily_dosage_ml} ml | Total: ${item.total_treatment_dosage_ml} ml
+                </small>
+              </div>
+            `;
+          });
+          
+          document.getElementById('recDosage').innerHTML = `<div class="medicines-list">${medicinesList}</div>`;
+          document.getElementById('recFrequency').textContent = `${rec.items.length} different schedules`;
+          document.getElementById('recDailyDosage').textContent = totalDailyDosage + ' ml (combined)';
+          document.getElementById('recTotalDosage').textContent = totalTreatmentDosage + ' ml (combined)';
+          
+          // Show treatment periods
+          const uniquePeriods = [...new Set(treatmentPeriods)];
+          document.getElementById('recTreatmentPeriod').textContent = uniquePeriods.length === 1 
+            ? uniquePeriods[0] 
+            : `Multiple schedules (${uniquePeriods.length} different periods)`;
+          
+          document.getElementById('recPerDoseInfo').innerHTML = `
+            <strong>Multi-Antibiotic Treatment Plan:</strong><br>
+            Follow each medication's specific dosage and schedule as listed above. 
+            Total of ${rec.items.length} different antibiotics prescribed.
+          `;
+        }
+      } else {
+        // Fallback for old structure compatibility
+        const medicine = rec.primary_treatment ? rec.primary_treatment.medicine : 'N/A';
+        const category = rec.primary_treatment ? rec.primary_treatment.category : 'Antibiotic';
+        const dosage = rec.primary_treatment ? rec.primary_treatment.dosage_ml : 0;
+        const frequency = rec.primary_treatment ? rec.primary_treatment.frequency : 'N/A';
+        const dailyDosage = rec.primary_treatment ? rec.primary_treatment.total_daily_dosage_ml : 0;
+        const totalDosage = rec.primary_treatment ? rec.primary_treatment.total_treatment_dosage_ml : 0;
+        
+        document.getElementById('recMedicine').textContent = medicine;
+        document.getElementById('recCategory').textContent = category;
+        document.getElementById('recDosage').textContent = dosage + ' ml';
+        document.getElementById('recFrequency').textContent = frequency;
+        document.getElementById('recDailyDosage').textContent = dailyDosage + ' ml';
+        document.getElementById('recTotalDosage').textContent = totalDosage + ' ml';
+        
+        if (rec.start_date && rec.end_date) {
+          const formattedStartDate = new Date(rec.start_date).toLocaleDateString('en-GB');
+          const formattedEndDate = new Date(rec.end_date).toLocaleDateString('en-GB');
+          document.getElementById('recTreatmentPeriod').textContent = `${formattedStartDate} to ${formattedEndDate}`;
+        }
+        
+        document.getElementById('recPerDoseInfo').innerHTML = `Give ${dosage} ml as prescribed.`;
+      }
+      
+      // Alternative treatments (if any)
+      const alternativesEl = document.getElementById('recAlternatives');
+      alternativesEl.innerHTML = '';
+      if (Array.isArray(rec.alternative_treatments) && rec.alternative_treatments.length) {
+        rec.alternative_treatments.forEach(med => {
+          const pill = document.createElement('span');
+          pill.className = 'alternative-pill';
+          pill.textContent = med;
+          alternativesEl.appendChild(pill);
+        });
+      } else {
+        alternativesEl.innerHTML = '<p class="text-muted">No alternative treatments available</p>';
+      }
+      
+      // Notes
+      document.getElementById('recNotes').textContent = rec.notes || `Multi-antibiotic treatment plan for ${rec.disease}. Follow all prescribed schedules carefully.`;
+    }
+    
+    // Function to show recommendation ID popup
+    function showRecommendationIdPopup(recommendationId) {
+      // Create modal for showing recommendation ID
+      const modalHtml = `
+        <div class="modal fade" id="recommendationIdModal" tabindex="-1" aria-labelledby="recommendationIdModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="recommendationIdModalLabel">
+                  <i class="fas fa-check-circle me-2"></i>Recommendation Created Successfully
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body text-center">
+                <div class="mb-3">
+                  <i class="fas fa-prescription-bottle-alt text-success" style="font-size: 3rem;"></i>
+                </div>
+                <h4 class="text-success mb-3">Prescription Generated!</h4>
+                <p class="mb-2">Your medicine recommendation has been successfully created.</p>
+                <div class="alert alert-info">
+                  <strong>Recommendation ID:</strong> 
+                  <span class="fs-4 fw-bold text-success">#${recommendationId}</span>
+                </div>
+                <p class="text-muted small">
+                  <i class="fas fa-info-circle me-1"></i>
+                  Please note this ID for future reference and medicine claims.
+                </p>
+              </div>
+              <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+                  <i class="fas fa-check me-2"></i>Got it!
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Remove existing modal if present
+      const existingModal = document.getElementById('recommendationIdModal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+      
+      // Add modal to body
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      
+      // Show modal
+      const modal = new bootstrap.Modal(document.getElementById('recommendationIdModal'));
+      modal.show();
+      
+      // Clean up modal after it's hidden
+      document.getElementById('recommendationIdModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+      });
+    }
+    
+    // Function to print recommendation receipt
+    function printRecommendation() {
+      window.print();
+    }
+    </script>
+{% endblock %}
+
+{% block content %}
+<div class="medicine-page">
+  <div class="container py-4">
+  <div class="row">
+    <div class="col-lg-7">
+      <div class="card medicine-card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5 class="mb-0">Medicine Recommendation</h5>
+          <button type="button" id="viewAllRecommendations" class="btn btn-sm btn-outline-success view-all-btn">
+            <i class="fas fa-list"></i> View All Recommendations
+          </button>
+        </div>
+        <div class="card-body">
+          {% if not farmer %}
+          <div class="alert alert-warning mb-3">
+            <i class="fas fa-exclamation-triangle me-2"></i> <strong>Note:</strong> No farmer selected. Please access this page via <code>/medicine/{farmer_id}</code> (example: <code>/medicine/1</code>) to enable recommendations.
+          </div>
+          {% endif %}
+          <form id="medicineForm">
+            <input type="hidden" id="farmer_id" name="farmer_id" value="{{ farmer.id if farmer else '' }}" />
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="animal_type" class="form-label">Animal Type</label>
+                <select id="animal_type" name="animal_type" class="form-select" required>
+                  <option value="" selected disabled>Select</option>
+                  <option value="Poultry">Poultry</option>
+                  <option value="Cattle">Cattle</option>
+                  <option value="Goat">Goat</option>
+                  <option value="Sheep">Sheep</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label for="disease" class="form-label">Disease/Condition</label>
+                <select id="disease" name="disease" class="form-select" required>
+                  <option value="" selected disabled>Select a disease</option>
+                  {% if diseases %}
+                    {% for d in diseases %}
+                      <option value="{{ d }}">{{ d }}</option>
+                    {% endfor %}
+                  {% endif %}
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label for="weight" class="form-label">Weight (kg)</label>
+                <input id="weight" name="weight" type="number" min="0" step="0.01" class="form-control" placeholder="e.g., 2.5" required />
+              </div>
+
+              <div class="col-md-6">
+                <label for="age" class="form-label">Age (days)</label>
+                <input id="age" name="age" type="number" min="0" step="1" class="form-control" placeholder="e.g., 30" required />
+              </div>
+            </div>
+
+            <!-- Multiple Antibiotics Section -->
+            <div class="card antibiotic-treatments-card mt-4">
+              <div class="card-header antibiotic-treatments-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-pills me-2"></i>Antibiotic Treatments</h5>
+                <button type="button" id="addAntibioticBtn" class="btn btn-sm add-antibiotic-btn">
+                  <i class="fas fa-plus me-1"></i>Add Antibiotic
+                </button>
+              </div>
+              <div class="card-body">
+                <div id="antibiotics-container">
+                  <!-- Antibiotic entries will be added here dynamically -->
+                </div>
+                <div id="no-antibiotics-msg" class="text-muted text-center py-4">
+                  <div class="mb-3">
+                    <i class="fas fa-prescription-bottle text-muted" style="font-size: 2.5rem; opacity: 0.3;"></i>
+                  </div>
+                  <h6 class="text-muted">No antibiotics added yet</h6>
+                  <p class="mb-0">Click "Add Antibiotic" to start building your prescription</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div id="preview-section" class="preview-section" style="display: none;">
+              <div class="preview-header">
+                <h6 class="mb-0">
+                  <i class="fas fa-eye me-2"></i>Prescription Preview
+                  <span id="preview-count" class="badge bg-light text-success ms-2">0</span>
+                </h6>
+              </div>
+              <div class="card-body">
+                <div id="preview-container">
+                  <!-- Preview items will be added here dynamically -->
+                </div>
+              </div>
+            </div>
+            
+            <!-- Preview Section (Initially Hidden) -->
+            <div id="treatment-preview" class="card mb-4 border-primary" style="display: none;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-microscope me-2"></i>Treatment Analysis & Preview</h5>
+                </div>
+                <div class="card-body bg-light">
+                    <p class="text-muted mb-3"><i class="fas fa-info-circle me-1"></i>Please review the AI-predicted treatment duration and dosage. You can adjust these values if necessary before confirming.</p>
+                    
+                    <div id="preview-items-container">
+                        <!-- Preview items will be injected here -->
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                        <button type="button" class="btn btn-outline-secondary me-2" onclick="cancelPreview()">
+                            <i class="fas fa-edit me-1"></i>Edit Details
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="confirmPrescription()">
+                            <i class="fas fa-check-circle me-2"></i>Confirm & Generate Prescription ID
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mt-4" id="action-buttons-row">
+              <div class="col-12">
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                  <button type="button" class="btn btn-outline-secondary me-md-2" onclick="clearAllAntibiotics()">
+                    <i class="fas fa-trash me-1"></i>Clear All
+                  </button>
+                  <button type="submit" class="btn btn-primary btn-lg" id="calculate-btn">
+                    <i class="fas fa-calculator me-2"></i>Calculate Treatment
+                  </button>
+                </div>
+                <div class="text-center mt-3">
+                  <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Click to calculate optimal dosage and duration based on AI analysis
+                  </small>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div id="recommendationCard" class="card recommendation-card">
+        <div class="card-header">
+          <h5 class="mb-0">Recommended Treatment</h5>
+          <div class="mt-2">
+            <small class="text-muted">Prescription ID: #<span id="recId">-</span></small>
+          </div>
+        </div>
+        <!-- Hidden shop info for receipt header -->
+        <div id="receiptShopInfo" style="display: none;">
+          {% if shop %}
+          <div class="hospital-name">{{ doctor.hospital_name }}</div>
+          <div class="hospital-address">{{ doctor.address }}</div>
+          <div class="hospital-contact">Phone: {{ doctor.phone_no }}</div>
+          <div class="hospital-email">Email: {{ doctor.email }}</div>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          <div id="loadingIndicator" class="text-center mb-3" style="display:none;">
+            <div class="spinner-border text-success" role="status"><span class="visually-hidden">Loading...</span></div>
+          </div>
+
+          <div class="mb-3">
+            <div class="row">
+              <div class="col-6"><strong>Disease:</strong> <span id="recDisease">-</span></div>
+              <div class="col-6"><strong>Animal:</strong> <span id="recAnimalType">-</span></div>
+              <div class="col-6"><strong>Weight:</strong> <span id="recWeight">-</span></div>
+              <div class="col-6"><strong>Age:</strong> <span id="recAge">-</span></div>
+              <div class="col-12"><strong>Treatment Period:</strong> <span id="recTreatmentPeriod">-</span></div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <h6 class="mb-2">Medicine</h6>
+            <div><strong>Name:</strong> <span id="recMedicine">-</span></div>
+            <div><strong>Category:</strong> <span id="recCategory">-</span></div>
+            <div><strong>Single Dose:</strong> <span id="recDosage">-</span></div>
+            <div><strong>Frequency:</strong> <span id="recFrequency">-</span></div>
+            <div><strong>Total Daily Dosage:</strong> <span id="recDailyDosage">-</span></div>
+            <div><strong>Total Treatment Dosage:</strong> <span id="recTotalDosage">-</span></div>
+            <div class="text-muted mt-2" id="recPerDoseInfo"></div>
+          </div>
+
+          <div class="mb-3">
+            <h6 class="mb-2">Alternatives</h6>
+            <div id="recAlternatives"></div>
+          </div>
+
+          <div>
+            <h6 class="mb-2">Notes</h6>
+            <p class="mb-0" id="recNotes">-</p>
+          </div>
+          <small class="text-muted d-block mt-3">Note: This is a recommendation only; no amount is collected.</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Previous Medicine Recommendations -->
+<div class="container pb-4">
+  <div class="card shadow-sm mt-3">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <h6 class="mb-0">Previous Medicine Recommendations</h6>
+  <button type="button" id="viewAllRecommendations" class="btn btn-sm btn-outline-success view-all-btn">
+        <i class="fas fa-table"></i> View All
+      </button>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0" id="prevRecommendationsTable">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Mobile No</th>
+              <th>Animal</th>
+              <th>Disease</th>
+              <th>Antibiotic</th>
+              <th>Dosage</th>
+              <th>Treatment Days</th>
+              <th>Total</th>
+              <th>Claimed</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tbody id="prevRecsTable">
+            {% if recommendations and recommendations|length > 0 %}
+            {% for rec in recommendations[:5] %}
+            <tr>
+              <td><span class="badge bg-primary">{{ rec.id }}</span></td>
+              <td>{{ rec.created_at.strftime('%d %b %Y') if rec.created_at else '' }}</td>
+              <td>{{ rec.farmer.mobile_no if rec.farmer else '-' }}</td>
+              <td>
+                {% if rec.recommendation_items and rec.recommendation_items|length > 0 %}
+                  {{ rec.recommendation_items[0].animal_type }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                {% if rec.recommendation_items and rec.recommendation_items|length > 0 %}
+                  {{ rec.recommendation_items[0].disease }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                {% if rec.recommendation_items and rec.recommendation_items|length > 0 %}
+                  {{ rec.recommendation_items[0].antibiotic_name }}
+                  {% if rec.recommendation_items|length > 1 %} <small class="text-muted">(+{{ rec.recommendation_items|length - 1 }} more)</small>{% endif %}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                {% if rec.recommendation_items and rec.recommendation_items|length > 0 %}
+                  {% set item = rec.recommendation_items[0] %}
+                  {{ item.single_dose_ml }} ml{% if item.daily_frequency and item.daily_frequency > 1 %} ({{ item.daily_frequency }}x/day){% endif %}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                {% if rec.recommendation_items and rec.recommendation_items|length > 0 %}
+                  {{ rec.recommendation_items[0].treatment_days }} days
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                {% if rec.recommendation_items and rec.recommendation_items|length > 0 %}
+                  {{ rec.recommendation_items[0].total_treatment_dosage_ml }} ml
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                {% if rec.is_claimed %}
+                  <span class="badge bg-success">Yes</span>
+                  {% if rec.claimed_by %}<br><small class="text-muted">by {{ rec.claimed_by }}</small>{% endif %}
+                {% else %}
+                  <span class="badge bg-secondary">No</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="10" class="text-center py-3">
+                <i class="fas fa-info-circle me-2 text-muted"></i> No previous recommendations found. 
+                {% if not farmer %}Access via <code>/medicine/{farmer_id}</code> to view recommendations.{% endif %}
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer bg-white text-muted small">
+        <i class="fas fa-info-circle me-1"></i> Note: No amount is collected for recommendations. This is a free service.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- All Recommendations Modal -->
+<div class="modal fade" id="allRecommendationsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">All Recommendations</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Mobile No</th>
+                <th>Animal</th>
+                <th>Disease</th>
+                <th>Antibiotic</th>
+                <th>Dosage</th>
+                <th>Treatment Days</th>
+                <th>Total</th>
+                <th>Claimed</th>
+              </tr>
+            </thead>
+            <tbody id="allRecommendationsTable"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
